@@ -4,6 +4,7 @@ from xmlrpc.server import SimpleXMLRPCServer
 import redis
 
 import urllib.request
+import random
 
 import dill
 
@@ -32,6 +33,7 @@ class Cluster:
         self.server.register_function(self.listWorkers)
         self.server.register_function(self.submitTask)
         self.server.register_function(self.submitTaskGroup)
+        self.server.register_function(self.getTaskResult)
 
         try:
             print("Control-C to exit")
@@ -63,6 +65,10 @@ class Cluster:
         return list(self.workers.keys())
     
     #Tasks
+    def getTaskResult(self, jobID):
+        code, res = self.redisCon.blpop(jobID, timeout=0)
+        return code.decode("ascii"), dill.loads(res)
+
     def submitTask(self, jobid, task, url):
         data = {
             'jobid': jobid, 
@@ -70,11 +76,44 @@ class Cluster:
             'url': url
         }
 
-        self.redisCon.rpush("jobs", dill.dumps(data))
+        task = (foo, data)
+        self.redisCon.rpush("jobs", dill.dumps(task))
         return True
 
-    def submitTaskGroup():
-        return True
+    def submitTaskGroup(self, jobID, task, urls, reduceFunc):
+        for url in urls:
+            self.submitTask(jobID, task, url)
+
+        finalQ = str(random.random())
+
+        data = {
+            'jobid': jobID,
+            'finalQ': finalQ,
+            'nElem': len(urls),
+            'reduceFunc': reduceFunc.data
+        }
+
+        task = (pop, data)
+        self.redisCon.rpush("jobs", dill.dumps(task))
+        return finalQ
+
+
+def foo(redisCon, data):
+    func = dill.loads(data['task'])
+    contents = urllib.request.urlopen(data['url']).read().decode("utf-8")
+    res = func(contents)
+    serializedRes = dill.dumps(res)
+    redisCon.rpush(data['jobid'], serializedRes)
+
+def pop(redisCon, data):
+    l = list()
+    for i in range(data['nElem']):
+        q, popped = redisCon.blpop(data['jobid'], timeout=0)
+        l.append(dill.loads(popped))
+    f = dill.loads(data['reduceFunc'])
+    reduced = f(l)
+    serReduced = dill.dumps(reduced)
+    redisCon.rpush(data['finalQ'], serReduced)
 
 class Worker:
     def __init__(self, id, con):
@@ -82,17 +121,13 @@ class Worker:
         self.redisCon = con
         self.proces = Process(target=self.__work)
     
-    def __work(self, queue="jobs"):
+    def __work(self):
         while True:
             print("Locking worker ", self.id)
-            packed = self.redisCon.blpop([queue], timeout=0)
+            q, data = self.redisCon.blpop('jobs', timeout=0)
             print("Unlocked worker ", self.id)
-            t = dill.loads(packed[1])
-            func = dill.loads(t['task'])
-            contents = urllib.request.urlopen(t['url']).read()
-            res = func(contents)
-            print(res)
-            
+            f, args = dill.loads(data)
+            f(self.redisCon, args)
 
     def start(self):
         self.proces.start()
