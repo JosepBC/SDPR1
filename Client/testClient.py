@@ -10,6 +10,7 @@ def CountingWords(text):
 def main():
     proxy = xmlrpc.client.ServerProxy("http://localhost:9000")
     proxy.addWorker()
+    proxy.addWorker("P")
     l = proxy.listWorkers()
     print("Workers: ", l)
     ser = dill.dumps(CountingWords)
