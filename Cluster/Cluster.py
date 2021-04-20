@@ -38,7 +38,7 @@ class Cluster:
             self.server.serve_forever()
         except KeyboardInterrupt:
             print("Stopping all workers")
-            for elem in self.workers:
+            for elem in self.workers.values():
                 elem.stop()
             print("Exiting")
 
