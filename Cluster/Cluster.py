@@ -20,7 +20,7 @@ class Cluster:
 
     def __init__(self):
         self.redisCon = redis.Redis(host="localhost")
-        self.workers = []
+        self.workers = {}
         self.server = SimpleXMLRPCServer(
             ("localhost", 9000),
             logRequests=True,
@@ -44,24 +44,23 @@ class Cluster:
 
 
     #Manage workers
-    def addWorker(self):
-        worker = Worker(len(self.workers), self.redisCon)
-        self.workers.append(worker)
+    def addWorker(self, workerID = None):
+        if workerID is None:
+            workerID = len(self.workers)
+        worker = Worker(workerID, self.redisCon)
+        self.workers[workerID] = worker
         worker.start()
         return True
 
-    def removeWorker(self, id):
+    def removeWorker(self, workerID):
         try:
-            self.workers.pop(id).stop()
+            self.workers.pop(workerID).stop()
         except KeyError:
-            print("Trying to remove an unexisting worker, id = ",id)
+            print("Trying to remove an unexisting worker, id = ", workerID)
         return True
 
     def listWorkers(self):
-        return list(map(lambda e: e.id, self.workers))
-        for e in self.workers:
-            print("Worker ", e.id)
-        return True
+        return list(self.workers.keys())
     
     #Tasks
     def submitTask(self, jobid, task, url):
