@@ -74,7 +74,7 @@ class Cluster:
             'url': url
         }
 
-        task = (map_task, data)
+        task = (mapTask, data)
         self.redisCon.rpush("jobs", dill.dumps(task))
         return True
 
@@ -91,19 +91,19 @@ class Cluster:
             'reduceFunc': reduceFunc.data
         }
 
-        task = (reduce_task, data)
+        task = (reduceTask, data)
         self.redisCon.rpush("jobs", dill.dumps(task))
         return finalQ
 
 
-def map_task(redisCon, data):
+def mapTask(redisCon, data):
     func = dill.loads(data['task'])
     contents = urllib.request.urlopen(data['url']).read().decode("utf-8")
     res = func(contents)
     serializedRes = dill.dumps(res)
     redisCon.rpush(data['jobid'], serializedRes)
 
-def reduce_task(redisCon, data):
+def reduceTask(redisCon, data):
     l = list()
     #Wait until all elems have been processed, map applyed to all inputs and store them into a list
     for i in range(data['nElem']):
@@ -112,7 +112,7 @@ def reduce_task(redisCon, data):
 
     reduceFoo = dill.loads(data['reduceFunc'])
     reduced = reduceFoo(l)
-    
+
     serReduced = dill.dumps(reduced)
     redisCon.rpush(data['finalQ'], serReduced)
 
