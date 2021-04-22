@@ -2,7 +2,9 @@
 In this exercise we've created a simple server that can perform any function with the API exposed.\
 We've implemented as well a simple CLI and two simple functions that can be performed, word count and count words.
 ## Cluster
-The packages needed by the cluster are described [here](Cluster/requirements.txt). To launch the cluster, use
+The packages needed by the cluster are described [here](Cluster/requirements.txt). 
+
+To launch the cluster, use
 ```bash
 python3 Cluster/runCluster.py  
 ```
@@ -15,16 +17,16 @@ pyhton3 -m http.server
 The packages needed by the client are described [here](Client/requirements.txt).
 
 For this example, two basic functions are implemented, word count and count words.
-### Word count
-Word count counts the total number of words of the input.
-```python
-wordCount("I love distributed systems")
-```
-Will output 4.
 ### Count words
-Count words counts the number of times that a word appears in the input.
+Count words counts the total number of words of the input.
 ```python
-countWords("foo foo var")
+countWords("I love distributed systems")
+```
+Will output 4
+### Word count 
+Word count counts the number of times that a word appears in the input.
+```python
+wordCount("foo foo var")
 ```
 Will output
 | Word     | Times  |
