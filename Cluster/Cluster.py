@@ -10,8 +10,6 @@ import dill
 
 from multiprocessing import Process
 
-import logging
-
 class Cluster:
     __instance = None
     def __new__(cls, *args):
@@ -27,14 +25,14 @@ class Cluster:
             logRequests=True,
         )
 
-        logging.basicConfig(level=logging.INFO)
         self.server.register_function(self.addWorker)
         self.server.register_function(self.removeWorker)
         self.server.register_function(self.listWorkers)
         self.server.register_function(self.submitTask)
         self.server.register_function(self.submitTaskGroup)
         self.server.register_function(self.getTaskResult)
-
+    
+    def run(self):
         try:
             print("Control-C to exit")
             self.server.serve_forever()
@@ -76,7 +74,7 @@ class Cluster:
             'url': url
         }
 
-        task = (foo, data)
+        task = (map_task, data)
         self.redisCon.rpush("jobs", dill.dumps(task))
         return True
 
@@ -93,25 +91,28 @@ class Cluster:
             'reduceFunc': reduceFunc.data
         }
 
-        task = (pop, data)
+        task = (reduce_task, data)
         self.redisCon.rpush("jobs", dill.dumps(task))
         return finalQ
 
 
-def foo(redisCon, data):
+def map_task(redisCon, data):
     func = dill.loads(data['task'])
     contents = urllib.request.urlopen(data['url']).read().decode("utf-8")
     res = func(contents)
     serializedRes = dill.dumps(res)
     redisCon.rpush(data['jobid'], serializedRes)
 
-def pop(redisCon, data):
+def reduce_task(redisCon, data):
     l = list()
+    #Wait until all elems have been processed, map applyed to all inputs and store them into a list
     for i in range(data['nElem']):
         q, popped = redisCon.blpop(data['jobid'], timeout=0)
         l.append(dill.loads(popped))
-    f = dill.loads(data['reduceFunc'])
-    reduced = f(l)
+
+    reduceFoo = dill.loads(data['reduceFunc'])
+    reduced = reduceFoo(l)
+    
     serReduced = dill.dumps(reduced)
     redisCon.rpush(data['finalQ'], serReduced)
 
