@@ -54,11 +54,11 @@ pyhton3 Client/client.py worker delete [id]
 ### Run count words
 Run the count words function 
 ```bash
-python3 Client/client.py job run-countwords [url1, url2, ...]
+python3 Client/client.py job run-countwords [url1 url2 ...]
 ```
 
 ### Run word count
 Run the count words function 
 ```bash
-python3 Client/client.py job run-wordcount [url1, url2, ...]
+python3 Client/client.py job run-wordcount [url1 url2 ...]
 ```
