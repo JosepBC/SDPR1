@@ -2,18 +2,39 @@
 import xmlrpc.client
 import argparse
 
-def CountingWords(text):
-    #resp = requests.get(url)
+import dill
+
+def countingWords(text):
     return len(text.split())
+
+def reduceCounting(listText):
+    mapped = map(lambda string: int(string), listText)
+    reduced = 0
+    for elem in list(mapped):
+        reduced += elem
+    return reduced
+
+def wordCount(text):
+    myMap = {}
+    for word in text.split():
+        if word in myMap:
+            myMap[word] += 1
+        else:
+            myMap[word] = 1
+    return myMap
+
+def reduceWordCount(listText):
+    myMap = {}
+    for elem in listText:
+        for key, value in elem.items():
+            if key in myMap:
+                myMap[key] += value
+            else:
+                myMap[key] = value
+    return myMap
 
 def main():
     proxy = xmlrpc.client.ServerProxy("http://localhost:9000")
-    proxy.addWorker()
-    proxy.addWorker()
-    l = proxy.listWorkers()
-    print(l)
-    proxy.submitTask("sad", "CountingWords", "asd")
-
 
     parser = argparse.ArgumentParser(description='Client')
     subparsers = parser.add_subparsers(help='sub-commnad-help', dest="cmd")
@@ -35,21 +56,32 @@ def main():
     argument = parser.parse_args()
 
     if hasattr(argument, "workercmd") and argument.workercmd == "delete":
-        #El argument de eliminar worker es argument.del_id 
-        pass
+        proxy.removeWorker(argument.del_id)
+        return
+
     if hasattr(argument, "workercmd") and argument.workercmd == "create":
-        #Llamar a la funcion de crear worker
-        pass
+        proxy.addWorker()
+        return
+
     if hasattr(argument, "workercmd") and argument.workercmd == "list":
-        #Llamar a la funcion de listar workers
-        pass
+        print(proxy.listWorkers())
+        return
+
     if hasattr(argument, "jobcmd") and argument.jobcmd == "run-wordcount":
-        #Llamar a run-wordcount con el parametro argument.links
-        pass
+        serWordCount = dill.dumps(wordCount)
+        serReduceWordCount = dill.dumps(reduceWordCount)
+        taskID = proxy.submitTaskGroup("a", serWordCount, argument.links, serReduceWordCount)
+        jobid, res = proxy.getTaskResult(taskID)
+        print("Task:", jobid, "=", res)
+        return
 
     if hasattr(argument, "jobcmd") and argument.jobcmd == "run-countwords":
-        #Llamar a run-countwords con el parametro argument.links
-
+        serCountingWords = dill.dumps(countingWords)
+        serReduceCountingWords = dill.dumps(reduceCounting)
+        taskID = proxy.submitTaskGroup("a", serCountingWords, argument.links, serReduceCountingWords)
+        jobid, res = proxy.getTaskResult(taskID)
+        print("Task:", jobid, "=", res)
+        return
 
 
 if __name__ == '__main__':
