@@ -72,7 +72,9 @@ def main():
         serReduceWordCount = dill.dumps(reduceWordCount)
         taskID = proxy.submitTaskGroup("a", serWordCount, argument.links, serReduceWordCount)
         jobid, res = proxy.getTaskResult(taskID)
-        print("Task:", jobid, "=", res)
+        print("Task:", jobid)
+        for key, value in res.items():
+            print(key, "=", value)
         return
 
     if hasattr(argument, "jobcmd") and argument.jobcmd == "run-countwords":
