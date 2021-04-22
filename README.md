@@ -22,17 +22,17 @@ Count words counts the total number of words of the input.
 ```python
 countWords("I love distributed systems")
 ```
-Will output 4
+>Will output 4
 ### Word count 
 Word count counts the number of times that a word appears in the input.
 ```python
 wordCount("foo foo var")
 ```
-Will output
-| Word     | Times  |
-|:--------:|:------:|
-| foo      | 2      |
-| var      | 1      |
+> Will output
+> | Word     | Times  |
+> |:--------:|:------:|
+> | foo      | 2      |
+> | var      | 1      |
 
 ## Client CLI
 The client CLI allows users to interact with the cluster, and allows the following actions
