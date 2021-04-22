@@ -2,7 +2,7 @@
 In this exercise we've created a simple server that can perform any function with the API exposed.\
 We've implemented as well a simple CLI and two simple functions that can be performed, word count and count words.
 ## Cluster
-The packages needed by the cluster are described [here](Cluster/requeriments.txt). To launch the cluster, use
+The packages needed by the cluster are described [here](Cluster/requirements.txt). To launch the cluster, use
 ```bash
 python3 Cluster/runCluster.py  
 ```
@@ -12,7 +12,7 @@ If you want to use a local webserver, launch the web server in the folder that y
 pyhton3 -m http.server  
 ```
 ## Client
-The packages needed by the client are described [here](Client/requeriments.txt).
+The packages needed by the client are described [here](Client/requirements.txt).
 
 For this example, two basic functions are implemented, word count and count words.
 ### Word count
