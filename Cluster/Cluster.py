@@ -10,7 +10,7 @@ import dill
 
 from multiprocessing import Process
 
-class Cluster:
+class Master:
     __instance = None
     def __new__(cls, *args):
         if cls.__instance is None:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from Cluster import Cluster
+from Cluster import Master
 
-cluster = Cluster()
+cluster = Master()
 cluster.run()
